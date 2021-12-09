@@ -3,11 +3,13 @@ from transitions import Machine
 
 class DialogMachine(object):
     _states = ['ready for start', 'waiting for size', 'waiting for payment method',
-              'waiting for confirmation', 'confirm order']
+               'waiting for confirmation', 'confirm order']
     _pizza_size = ''
     _payment_method = ''
 
-    def __init__(self, id_):
+    default_state = _states[0]
+
+    def __init__(self):
         self._machine = Machine(model=self, states=DialogMachine._states, initial='ready for start')
 
         self._machine.add_transition('start_dialog', 'ready for start', 'waiting for size')
