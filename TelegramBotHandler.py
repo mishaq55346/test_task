@@ -31,6 +31,9 @@ kb_again.add(KeyboardButton('Сделать новый заказ'))
 
 @dp.message_handler(content_types=['text'])
 async def get_text_messages(message: types.Message):
+    print(message.from_user.id)
+    #if str(message.from_user.id) == "103953122":
+    #    return
     person_id = message.from_user.id
     if not (db.has_user(person_id)):
         db.add_user(person_id, dMachine.default_state)
