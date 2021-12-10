@@ -2,8 +2,7 @@ from transitions import Machine
 
 
 class StateMachine(object):
-    _states = ['ready for start', 'waiting for size', 'waiting for payment method',
-               'waiting for confirmation', 'confirm order']
+    _states = ['ready for start', 'know size', 'know payment method', 'confirm order']
     pizza_size = ''
     payment_method = ''
 
@@ -12,17 +11,12 @@ class StateMachine(object):
     def __init__(self):
         self._machine = Machine(model=self, states=StateMachine._states, initial='ready for start')
 
-        self._machine.add_transition('start_dialog', 'ready for start', 'waiting for size')
-        self._machine.add_transition('accept_size', 'waiting for size', 'waiting for payment method')
-        self._machine.add_transition('accept_pay_method', 'waiting for payment method', 'waiting for confirmation')
-        self._machine.add_transition('confirm_order', 'waiting for confirmation', 'confirm order')
+        self._machine.add_transition('accept_size', 'ready for start', 'know size')
+        self._machine.add_transition('accept_pay_method', 'know size', 'know payment method')
+        self._machine.add_transition('confirm_order', 'know payment method', 'confirm order')
 
         self._machine.add_transition('start_again', '*', 'ready for start',
                                      before='clear_data')
-        self._machine.add_transition('back_from_pay', 'waiting for payment method', 'waiting for size',
-                                     before='clear_payment_method')
-        self._machine.add_transition('back_from_confirm', 'waiting for confirmation', 'waiting for payment method',
-                                     before='clear_payment_method')
 
     def clear_data(self):
         self.pizza_size = ''
