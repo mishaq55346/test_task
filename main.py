@@ -1,6 +1,6 @@
-from DialogMachine import DialogMachine
+from StateMachine import StateMachine
 
-dMachine = DialogMachine()
+dMachine = StateMachine()
 print(dMachine.state)
 dMachine.start_dialog()
 print(dMachine.state)
