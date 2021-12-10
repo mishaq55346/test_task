@@ -32,7 +32,7 @@ kb_again.add(KeyboardButton('Сделать новый заказ'))
 @dp.message_handler(content_types=['text'])
 async def get_text_messages(message: types.Message):
     print(message.from_user.id)
-    #if str(message.from_user.id) == "103953122":
+    # if str(message.from_user.id) == "103953122":
     #    return
     person_id = message.from_user.id
     if not (db.has_user(person_id)):
@@ -70,7 +70,8 @@ async def get_text_messages(message: types.Message):
                                .format(dMachine.pizza_size.lower(), dMachine.payment_method.lower()))
 
 
-executor.start_polling(dp)
+def start():
+    executor.start_polling(dp)
 
 
 def message_processing(message):
