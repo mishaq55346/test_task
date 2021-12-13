@@ -1,7 +1,4 @@
-import telegram.telegramBotHandler as telegram_bot
-import skype.skypeBotHandler as skype_bot
-import vk.vkBotHandler as vk_bot
-import facebook.facebookBotHandler as facebook_bot
+import bots.telegram.telegramBotHandler as telegram_bot
 
 telegram_bot.start()
 # skype_bot.start()
