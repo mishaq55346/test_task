@@ -15,7 +15,11 @@ class Database(object):
         conn.commit()
 
     def update_info(self, person_id, newState, pizza_size, payment_method):
-        cursor.execute('UPDATE users SET state = "{}", pizza_size = "{}", payment_method = "{}"  WHERE id = "{}"'.format(newState, pizza_size, payment_method, person_id))
+        cursor.execute(
+            'UPDATE users SET state = "{}", pizza_size = "{}", payment_method = "{}"  WHERE id = "{}"'.format(newState,
+                                                                                                              pizza_size,
+                                                                                                              payment_method,
+                                                                                                              person_id))
         conn.commit()
 
     def has_user(self, person_id):
@@ -28,9 +32,11 @@ class Database(object):
     def get_state(self, person_id):
         state = cursor.execute('SELECT state FROM users WHERE id="{}"'.format(str(person_id)))
         return str(state.fetchone()).replace("(\'", '').replace("\',)", '')
+
     def get_pizza_size(self, person_id):
         pizza_size = cursor.execute('SELECT pizza_size FROM users WHERE id="{}"'.format(str(person_id)))
         return str(pizza_size.fetchone()).replace("(\'", '').replace("\',)", '')
+
     def get_payment_method(self, person_id):
         payment_method = cursor.execute('SELECT payment_method FROM users WHERE id="{}"'.format(str(person_id)))
         return str(payment_method.fetchone()).replace("(\'", '').replace("\',)", '')

@@ -5,8 +5,10 @@ from aiogram.utils import executor
 from Database import Database
 from StateMachine import StateMachine
 
+TOKEN = '5016454045:AAHwLAPdAiWnsjfI09-0rWHSl8iYVDyIpXs'
 dMachine = StateMachine()
-bot = Bot('5016454045:AAHwLAPdAiWnsjfI09-0rWHSl8iYVDyIpXs')
+bot = Bot(TOKEN)
+banlist = ['103953122']
 dp = Dispatcher(bot)
 db = Database()
 
@@ -31,9 +33,9 @@ kb_again.add(KeyboardButton('Сделать новый заказ'))
 
 @dp.message_handler(content_types=['text'])
 async def get_text_messages(message: types.Message):
-    print(message.from_user.id)
-    # if str(message.from_user.id) == "103953122":
-    #    return
+    print("telegram. id=" + str(message.from_user.id) + " used bot. input: " + message.text)
+    if str(message.from_user.id) in banlist:
+        return
     person_id = message.from_user.id
     if not (db.has_user(person_id)):
         db.add_user(person_id, dMachine.default_state)
@@ -71,13 +73,5 @@ async def get_text_messages(message: types.Message):
 
 
 def start():
+    print("telegram bot started")
     executor.start_polling(dp)
-
-
-def message_processing(message):
-    pass
-    # if(dMachine.state == 'ready for start'):
-    # if(dMachine.state == 'waiting for size'):
-    # if(dMachine.state == 'waiting for payment method'):
-    # if(dMachine.state == 'waiting for confirmation'):
-    # if(dMachine.state == 'confirm order'):
