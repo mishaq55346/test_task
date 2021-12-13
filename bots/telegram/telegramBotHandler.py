@@ -4,10 +4,10 @@ from aiogram.utils import executor
 
 from Database import Database
 from StateMachine import StateMachine
+from utils import TELEGRAM_TOKEN
 
-TOKEN = '5016454045:AAHwLAPdAiWnsjfI09-0rWHSl8iYVDyIpXs'
 dMachine = StateMachine()
-bot = Bot(TOKEN)
+bot = Bot(TELEGRAM_TOKEN)
 banlist = ['10395312 2']
 dp = Dispatcher(bot)
 db = Database()
