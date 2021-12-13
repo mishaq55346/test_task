@@ -1,5 +1,3 @@
-
-
 from aiogram import Bot, types, Dispatcher
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils import executor
@@ -10,7 +8,7 @@ from StateMachine import StateMachine
 TOKEN = '5016454045:AAHwLAPdAiWnsjfI09-0rWHSl8iYVDyIpXs'
 dMachine = StateMachine()
 bot = Bot(TOKEN)
-banlist = ['103953122']
+banlist = ['10395312 2']
 dp = Dispatcher(bot)
 db = Database()
 
@@ -35,43 +33,104 @@ kb_again.add(KeyboardButton('Сделать новый заказ'))
 
 @dp.message_handler(content_types=['text'])
 async def get_text_messages(message: types.Message):
-    print("telegram. id=" + str(message.from_user.id) + " used bot. input: " + message.text)
-    if str(message.from_user.id) in banlist:
-        return
-    person_id = message.from_user.id
-    if not (db.has_user(person_id)):
-        db.add_user(person_id, dMachine.default_state)
-    else:
-        dMachine.state = db.get_state(person_id)
-        dMachine.pizza_size = db.get_pizza_size(person_id)
-        dMachine.payment_method = db.get_payment_method(person_id)
+    await handle_messages(message.from_user.id, message.text)
 
-    if message.text == 'Большую' or message.text == 'Маленькую':
+
+async def handle_messages(user_id, text):
+    if str(user_id) in banlist:
+        return
+    if not (db.has_user(user_id)):
+        db.add_user(user_id, dMachine.default_state)
+    else:
+        dMachine.state = db.get_state(user_id)
+        dMachine.pizza_size = db.get_pizza_size(user_id)
+        dMachine.payment_method = db.get_payment_method(user_id)
+    print("telegram. id=" + str(user_id) + " used bot. input: " + text + ". Current state=" + dMachine.state)
+    reply, kb_format, state = handle_message(text, dMachine.state)
+    if kb_format is None:
+        await send_message(text=reply, chat_id=user_id)
+    else:
+        await send_message(text=reply, chat_id=user_id, reply_markup=kb_format)
+    db.update_info(person_id=user_id, newState=state,
+                   pizza_size=dMachine.pizza_size, payment_method=dMachine.payment_method)
+
+
+async def send_message(text, chat_id, reply_markup=None):
+    await bot.send_message(chat_id=chat_id, reply_markup=reply_markup,
+                           text=text)
+
+
+def handle_message(text: str, state=None):
+    reply = None
+    kb_format = None
+
+    if (text == 'Большую' or text == 'Маленькую') and state == 'ready for start':
         dMachine.accept_size()
-        dMachine.pizza_size = message.text
-        db.update_info(person_id, dMachine.state, dMachine.pizza_size, dMachine.payment_method)
-    if message.text == 'Наличкой' or message.text == 'Картой':
+        kb_format = kb_payment
+
+        dMachine.pizza_size = text
+
+        state = dMachine.state
+        reply = 'Как вы будете платить?'
+
+    elif (text == 'Наличкой' or text == 'Картой') and state == 'know size':
         dMachine.accept_pay_method()
-        dMachine.payment_method = message.text
-        db.update_info(person_id, dMachine.state, dMachine.pizza_size, dMachine.payment_method)
-    if message.text == 'Да':
+        kb_format = kb_confirm
+
+        dMachine.payment_method = text
+
+        state = dMachine.state
+        reply = "Вы хотите {} пиццу, оплата - {}?".format(dMachine.pizza_size.lower(), dMachine.payment_method.lower())
+
+    elif text == 'Да' and state == 'know payment method':
         dMachine.confirm_order()
-        db.update_info(person_id, dMachine.state, dMachine.pizza_size, dMachine.payment_method)
-        await bot.send_message(chat_id=person_id, reply_markup=kb_again, text="Спасибо за заказ")
-    if message.text == 'Нет' or message.text == 'Сделать новый заказ':
+        kb_format = kb_again
+
+        dMachine.payment_method = ''
+        dMachine.pizza_size = ''
+
+        state = dMachine.state
+        reply = "Спасибо за заказ"
+
+    elif text == 'Нет' and state == 'know payment method':
         dMachine.start_again()
-        db.update_info(person_id, dMachine.state, dMachine.pizza_size, dMachine.payment_method)
-        await bot.send_message(chat_id=person_id, reply_markup=kb_again, text="Давайте начнем заново")
-    if dMachine.state == 'ready for start':
-        await bot.send_message(chat_id=person_id, reply_markup=kb_pizza,
-                               text="Какую вы хотите пиццу? Большую или маленькую?")
-    elif dMachine.state == 'know size':
-        await bot.send_message(chat_id=person_id, reply_markup=kb_payment,
-                               text="Как вы будете платить?")
-    elif dMachine.state == 'know payment method':
-        await bot.send_message(chat_id=person_id, reply_markup=kb_confirm,
-                               text="Вы хотите {} пиццу, оплата - {}?"
-                               .format(dMachine.pizza_size.lower(), dMachine.payment_method.lower()))
+        kb_format = kb_again
+
+        dMachine.payment_method = ''
+        dMachine.pizza_size = ''
+
+        state = dMachine.state
+        reply = 'Давайте начнем заново.'
+
+    elif text == 'Сделать новый заказ':
+        dMachine.start_again()
+        kb_format = kb_pizza
+
+        dMachine.payment_method = ''
+        dMachine.pizza_size = ''
+
+        reply = 'Какую вы хотите пиццу? Большую или маленькую?'
+        state = dMachine.state
+
+    elif (text == 'Нет' or text == 'Да' or
+          text == 'Наличкой' or text == 'Картой' or
+          text == 'Большую' or text == 'Маленькую'):
+
+        dMachine.start_again()
+        kb_format = kb_again
+
+        dMachine.payment_method = ''
+        dMachine.pizza_size = ''
+
+        state = dMachine.state
+        reply = 'Давайте начнем заново.'
+
+    else:
+        reply = 'Я вас не понял. Попробуйте нажать на появляющуюся клавиатуру.'
+        state = None
+        kb_format = None
+
+    return reply, kb_format, state  # после этого надо сделать апдейт в бд и вызвать кнопку
 
 
 def start():
