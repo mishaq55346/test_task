@@ -127,7 +127,7 @@ def handle_message(text: str, state=None):
 
     else:
         reply = 'Я вас не понял. Попробуйте нажать на появляющуюся клавиатуру.'
-        state = None
+        state = dMachine.state
         kb_format = None
 
     return reply, kb_format, state  # после этого надо сделать апдейт в бд и вызвать кнопку
